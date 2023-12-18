@@ -12,7 +12,7 @@ public static class SchemaLoaderUtil
     }
 
     public static RawTable CreateTable(string schemaFile, string name, string module, string valueType, string index, string mode, string group,
-        string comment, bool readSchemaFromFile, string input, string tags, string outputFileName)
+        string comment, bool readSchemaFromFile, string input, string tags, string outputFileName, string outputMode)
     {
         var p = new RawTable()
         {
@@ -26,16 +26,37 @@ public static class SchemaLoaderUtil
             Mode = ConvertMode(schemaFile, name, mode, index),
             Tags = DefUtil.ParseAttrs(tags),
             OutputFile = outputFileName,
+            OutputMode = ConvertOutputMode(outputMode)
         };
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new Exception($"定义文件:{schemaFile} table:'{p.Name}' name:'{p.Name}' 不能为空");
         }
+
         if (string.IsNullOrWhiteSpace(valueType))
         {
             throw new Exception($"定义文件:{schemaFile} table:'{p.Name}' value_type:'{valueType}' 不能为空");
         }
-        p.InputFiles.AddRange(input.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        var inputList = input.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s));
+        foreach (var inputStr in inputList)
+        {
+            var fullPath = $"{GenerationContext.GetInputDataPath()}/{inputStr}";
+            if (File.Exists(fullPath))
+            {
+                p.InputFiles.Add(inputStr);
+            }
+            // 这是一个文件夹路径
+            else if (Directory.Exists(fullPath))
+            {
+                var dirInfo = new DirectoryInfo(fullPath);
+
+                // 获取所有xlsx文件
+                FileInfo[] files = dirInfo.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
+
+                p.InputFiles.AddRange(files.Select(file => $"{inputStr}/{file.Name}"));
+            }
+        }
 
         // if (!string.IsNullOrWhiteSpace(patchInput))
         // {
@@ -60,7 +81,7 @@ public static class SchemaLoaderUtil
     public static TableMode ConvertMode(string schemaFile, string tableName, string modeStr, string indexStr)
     {
         TableMode mode;
-        string[] indexs = indexStr.Split(',', '+');
+        string[]  indexs = indexStr.Split(',', '+');
         switch (modeStr)
         {
             case "one":
@@ -71,6 +92,7 @@ public static class SchemaLoaderUtil
                 {
                     throw new Exception($"定义文件:{schemaFile} table:'{tableName}' mode={modeStr} 是单例表，不支持定义index属性");
                 }
+
                 mode = TableMode.ONE;
                 break;
             }
@@ -80,6 +102,7 @@ public static class SchemaLoaderUtil
                 {
                     throw new Exception($"定义文件:'{schemaFile}' table:'{tableName}' 是单主键表，index:'{indexStr}'不能包含多个key");
                 }
+
                 mode = TableMode.MAP;
                 break;
             }
@@ -98,6 +121,7 @@ public static class SchemaLoaderUtil
                 {
                     mode = TableMode.LIST;
                 }
+
                 break;
             }
             default:
@@ -105,7 +129,33 @@ public static class SchemaLoaderUtil
                 throw new ArgumentException($"不支持的 mode:{modeStr}");
             }
         }
+
         return mode;
+    }
+
+    public static TableOutputMode ConvertOutputMode(string outputModeStr)
+    {
+        TableOutputMode outputMode;
+        switch (outputModeStr)
+        {
+            case "one":
+            case "":
+            {
+                outputMode = TableOutputMode.One;
+                break;
+            }
+            case "more":
+            {
+                outputMode = TableOutputMode.More;
+                break;
+            }
+            default:
+            {
+                throw new ArgumentException($"不支持的 mode:{outputModeStr}");
+            }
+        }
+
+        return outputMode;
     }
 
     public static RawField CreateField(string schemaFile, string name, string type, string group,

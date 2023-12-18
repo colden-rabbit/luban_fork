@@ -22,10 +22,22 @@ public class BinaryDataTarget : DataTargetBase
     {
         var bytes = new ByteBuf();
         WriteList(table, records, bytes);
-        return new OutputFile()
+        return new OutputFile() { File = $"{table.OutputDataFile}.{OutputFileExt}", Content = bytes.CopyData(), };
+    }
+
+    public override List<OutputFile> ExportTables(DefTable table, List<Record> records)
+    {
+        var groupedRecords = records.GroupBy(r => r.Source);
+        var outputFiles    = new List<OutputFile>();
+        var fileIndex      = 1; // 文件索引从1开始
+
+        foreach (var group in groupedRecords)
         {
-            File = $"{table.OutputDataFile}.{OutputFileExt}",
-            Content = bytes.CopyData(),
-        };
+            var bytes = new ByteBuf();
+            WriteList(table, group.ToList(), bytes);
+            outputFiles.Add(new OutputFile() { File = $"{table.OutputDataFile}_{fileIndex++}.{OutputFileExt}", Content = bytes.CopyData(), });
+        }
+
+        return outputFiles;
     }
 }

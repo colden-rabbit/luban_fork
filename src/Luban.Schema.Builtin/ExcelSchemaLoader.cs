@@ -57,6 +57,7 @@ public class ExcelSchemaLoader : SchemaLoaderBase
                 new() { Name = "input", Type = "string" },
                 new() { Name = "output", Type = "string" },
                 new() { Name = "tags", Type = "string" },
+                new() { Name = "output_mode", Type = "string" },
             }
         })
         {
@@ -94,7 +95,8 @@ public class ExcelSchemaLoader : SchemaLoaderBase
             string tags = (data.GetField("tags") as DString).Value.Trim();
             string outputFile = (data.GetField("output") as DString).Value.Trim();
             // string options = (data.GetField("options") as DString).Value.Trim(); 
-            var table = SchemaLoaderUtil.CreateTable(fileName, name, module, valueType, index, mode, group, comment, readSchemaFromFile, inputFile, tags, outputFile);
+            string outputMode = (data.GetField("output_mode") as DString).Value.Trim();
+            var table = SchemaLoaderUtil.CreateTable(fileName, name, module, valueType, index, mode, group, comment, readSchemaFromFile, inputFile, tags, outputFile, outputMode);
             Collector.Add(table);
         };
     }

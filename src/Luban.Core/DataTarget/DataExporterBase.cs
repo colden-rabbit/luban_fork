@@ -5,7 +5,7 @@ namespace Luban.DataTarget;
 public abstract class DataExporterBase : IDataExporter
 {
     public const string FamilyPrefix = "dataExporter";
-
+    private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
     public virtual void Handle(GenerationContext ctx, IDataTarget dataTarget, OutputFileManifest manifest)
     {
@@ -16,7 +16,14 @@ public abstract class DataExporterBase : IDataExporter
             {
                 var tasks = tables.Select(table => Task.Run(() =>
                 {
-                    manifest.AddFile(dataTarget.ExportTable(table, ctx.GetTableExportDataList(table)));
+                    if (table.OutputMode == TableOutputMode.More)
+                    {
+                        manifest.AddFiles(dataTarget.ExportTables(table, ctx.GetTableExportDataList(table)));
+                    }
+                    else
+                    {
+                        manifest.AddFile(dataTarget.ExportTable(table, ctx.GetTableExportDataList(table)));
+                    }
                 })).ToArray();
                 Task.WaitAll(tasks);
                 break;
@@ -39,6 +46,7 @@ public abstract class DataExporterBase : IDataExporter
                         }));
                     }
                 }
+
                 Task.WaitAll(tasks.ToArray());
                 break;
             }
@@ -52,6 +60,5 @@ public abstract class DataExporterBase : IDataExporter
 
     protected virtual void ExportCustom(List<DefTable> tables, OutputFileManifest manifest, IDataTarget dataTarget)
     {
-
     }
 }

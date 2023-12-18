@@ -21,24 +21,36 @@ public class JsonDataTarget : DataTargetBase
         {
             d.Data.Apply(jsonDataVisitor, x);
         }
+
         x.WriteEndArray();
     }
 
     public override OutputFile ExportTable(DefTable table, List<Record> records)
     {
         var ss = new MemoryStream();
-        var jsonWriter = new Utf8JsonWriter(ss, new JsonWriterOptions()
-        {
-            Indented = !UseCompactJson,
-            SkipValidation = false,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        });
+        var jsonWriter = new Utf8JsonWriter(ss,
+            new JsonWriterOptions() { Indented = !UseCompactJson, SkipValidation = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping, });
         WriteAsArray(records, jsonWriter, ImplJsonDataVisitor);
         jsonWriter.Flush();
-        return new OutputFile()
+        return new OutputFile() { File = $"{table.OutputDataFile}.{OutputFileExt}", Content = DataUtil.StreamToBytes(ss), };
+    }
+
+    public override List<OutputFile> ExportTables(DefTable table, List<Record> records)
+    {
+        var groupedRecords = records.GroupBy(r => r.Source);
+        var outputFiles    = new List<OutputFile>();
+        var fileIndex      = 1; // 文件索引从1开始
+
+        foreach (var group in groupedRecords)
         {
-            File = $"{table.OutputDataFile}.{OutputFileExt}",
-            Content = DataUtil.StreamToBytes(ss),
-        };
+            var ss = new MemoryStream();
+            var jsonWriter = new Utf8JsonWriter(ss,
+                new JsonWriterOptions() { Indented = !UseCompactJson, SkipValidation = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping, });
+            WriteAsArray(group.ToList(), jsonWriter, ImplJsonDataVisitor);
+            jsonWriter.Flush();
+            outputFiles.Add(new OutputFile() { File = $"{table.OutputDataFile}_{fileIndex++}.{OutputFileExt}", Content = DataUtil.StreamToBytes(ss) });
+        }
+
+        return outputFiles;
     }
 }

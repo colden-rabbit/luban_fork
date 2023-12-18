@@ -44,6 +44,7 @@ public class DefaultPipeline : IPipeline
 
         string schemaCollectorName = _args.SchemaCollector;
         s_logger.Info("load schema. collector: {}  path:{}", schemaCollectorName, _args.ConfFile);
+        
         var schemaCollector = SchemaManager.Ins.CreateSchemaCollector(schemaCollectorName);
         schemaCollector.Load(_config);
         _rawAssembly = schemaCollector.CreateRawAssembly();

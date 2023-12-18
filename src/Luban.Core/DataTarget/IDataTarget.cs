@@ -17,6 +17,8 @@ public interface IDataTarget
     bool ExportAllRecords { get; }
 
     OutputFile ExportTable(DefTable table, List<Record> records);
+    
+    List<OutputFile> ExportTables(DefTable table, List<Record> records);
 
     OutputFile ExportTables(List<DefTable> tables);
 

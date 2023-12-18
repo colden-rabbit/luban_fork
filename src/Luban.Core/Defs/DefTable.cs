@@ -25,6 +25,7 @@ public class DefTable : DefTypeBase
         ReadSchemaFromFile = b.ReadSchemaFromFile;
         Tags = b.Tags;
         _outputFile = b.OutputFile;
+        OutputMode = b.OutputMode;
     }
 
     public string Index { get; private set; }
@@ -47,6 +48,8 @@ public class DefTable : DefTypeBase
 
     private readonly string _outputFile;
 
+    public TableOutputMode OutputMode { get; }
+    
     public TType KeyTType { get; private set; }
 
     public DefField IndexField { get; private set; }
@@ -110,6 +113,7 @@ public class DefTable : DefTypeBase
                     Index = IndexField.Name;
                     IndexFieldIdIndex = 0;
                 }
+
                 KeyTType = IndexField.CType;
                 Type = TMap.Create(false, null, KeyTType, ValueTType, false);
                 this.IndexList.Add(new IndexInfo(KeyTType, IndexField, IndexFieldIdIndex));
@@ -127,6 +131,7 @@ public class DefTable : DefTypeBase
                             IndexField = f;
                             IndexFieldIdIndex = i;
                         }
+
                         this.IndexList.Add(new IndexInfo(f.CType, f, i));
                     }
                     else
@@ -134,6 +139,7 @@ public class DefTable : DefTypeBase
                         throw new Exception($"table:'{FullName}' index:'{idx}' 字段不存在");
                     }
                 }
+
                 // 如果不是 union index, 每个key必须唯一，否则 (key1,..,key n)唯一
                 IsUnionIndex = IndexList.Count > 1 && !Index.Contains(',');
                 MultiKey = IndexList.Count > 1 && Index.Contains(',');
@@ -145,12 +151,13 @@ public class DefTable : DefTypeBase
 
         foreach (var index in IndexList)
         {
-            TType indexType = index.Type;
-            string idxName = index.IndexField.Name;
+            TType  indexType = index.Type;
+            string idxName   = index.IndexField.Name;
             if (indexType.IsNullable)
             {
                 throw new Exception($"table:'{FullName}' index:'{idxName}' 不能为 nullable类型");
             }
+
             if (!indexType.Apply(IsValidTableKeyTypeVisitor.Ins))
             {
                 throw new Exception($"table:'{FullName}' index:'{idxName}' 的类型:'{index.IndexField.Type}' 不能作为index");

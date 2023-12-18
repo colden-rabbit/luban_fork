@@ -35,4 +35,15 @@ public class OutputFileManifest
             _dataFiles.Add(file);
         }
     }
+
+    public void AddFiles(List<OutputFile> outputFiles)
+    {
+        foreach (var outputFile in outputFiles)
+        {
+            lock (this)
+            {
+                _dataFiles.Add(outputFile);
+            }
+        }
+    }
 }

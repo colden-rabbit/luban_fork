@@ -14,6 +14,11 @@ public abstract class DataTargetBase : IDataTarget
 
     public abstract OutputFile ExportTable(DefTable table, List<Record> records);
 
+    public virtual List<OutputFile> ExportTables(DefTable table, List<Record> records)
+    {
+        throw new NotSupportedException();
+    }
+
     public virtual OutputFile ExportTables(List<DefTable> tables)
     {
         throw new NotSupportedException();
