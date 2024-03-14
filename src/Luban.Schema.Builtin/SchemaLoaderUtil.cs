@@ -54,7 +54,10 @@ public static class SchemaLoaderUtil
                 // 获取所有xlsx文件
                 FileInfo[] files = dirInfo.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
 
-                p.InputFiles.AddRange(files.Select(file => $"{inputStr}/{file.Name}"));
+                // 过滤掉以"##"开头的文件
+                IEnumerable<FileInfo> filteredFiles = files.Where(file => !file.Name.StartsWith("##"));
+
+                p.InputFiles.AddRange(filteredFiles.Select(file => $"{inputStr}/{file.Name}"));
             }
         }
 
