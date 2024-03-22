@@ -42,12 +42,8 @@ public static class SchemaLoaderUtil
         foreach (var inputStr in inputList)
         {
             var fullPath = $"{GenerationContext.GetInputDataPath()}/{inputStr}";
-            if (File.Exists(fullPath))
-            {
-                p.InputFiles.Add(inputStr);
-            }
             // 这是一个文件夹路径
-            else if (Directory.Exists(fullPath))
+            if (Directory.Exists(fullPath))
             {
                 var dirInfo = new DirectoryInfo(fullPath);
 
@@ -58,6 +54,10 @@ public static class SchemaLoaderUtil
                 IEnumerable<FileInfo> filteredFiles = files.Where(file => !file.Name.StartsWith("##"));
 
                 p.InputFiles.AddRange(filteredFiles.Select(file => $"{inputStr}/{file.Name}"));
+            }
+            else
+            {
+                p.InputFiles.Add(inputStr);
             }
         }
 
