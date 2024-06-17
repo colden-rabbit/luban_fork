@@ -7,7 +7,7 @@ namespace Luban.L10N.DataTarget;
 [DataTarget("text-list")]
 internal class TextKeyListDataTarget : DataTargetBase
 {
-    protected override string OutputFileExt => "txt";
+    protected override string DefaultOutputFileExt => "txt";
 
     public override bool ExportAllRecords => true;
 
@@ -33,7 +33,7 @@ internal class TextKeyListDataTarget : DataTargetBase
         keys.Sort((a, b) => string.Compare(a, b, StringComparison.Ordinal));
         var content = string.Join("\n", keys);
 
-        string outputFile = EnvManager.Current.GetOption(BuiltinOptionNames.L10NFamily, BuiltinOptionNames.TextKeyListFile, false);
+        string outputFile = EnvManager.Current.GetOption(BuiltinOptionNames.L10NFamily, BuiltinOptionNames.L10NTextListFile, false);
 
         return new OutputFile { File = outputFile, Content = content };
     }
