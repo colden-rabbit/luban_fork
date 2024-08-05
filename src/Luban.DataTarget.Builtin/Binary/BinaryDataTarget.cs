@@ -29,13 +29,14 @@ public class BinaryDataTarget : DataTargetBase
     {
         var groupedRecords = records.GroupBy(r => r.Source);
         var outputFiles    = new List<OutputFile>();
-        var fileIndex      = 1; // 文件索引从1开始
 
         foreach (var group in groupedRecords)
         {
-            var bytes = new ByteBuf();
+            // 文件索引
+            var fileNameIndex = Path.GetFileNameWithoutExtension(group.Key);
+            var bytes         = new ByteBuf();
             WriteList(table, group.ToList(), bytes);
-            outputFiles.Add(new OutputFile() { File = $"{table.OutputDataFile}_{fileIndex++}.{OutputFileExt}", Content = bytes.CopyData(), });
+            outputFiles.Add(new OutputFile() { File = $"{table.OutputDataFile}_{fileNameIndex}.{OutputFileExt}", Content = bytes.CopyData(), });
         }
 
         return outputFiles;

@@ -40,16 +40,17 @@ public class JsonDataTarget : DataTargetBase
     {
         var groupedRecords = records.GroupBy(r => r.Source);
         var outputFiles    = new List<OutputFile>();
-        var fileIndex      = 1; // 文件索引从1开始
 
         foreach (var group in groupedRecords)
         {
-            var ss = new MemoryStream();
+            // 文件索引
+            var fileNameIndex = Path.GetFileNameWithoutExtension(group.Key);
+            var ss            = new MemoryStream();
             var jsonWriter = new Utf8JsonWriter(ss,
                 new JsonWriterOptions() { Indented = !UseCompactJson, SkipValidation = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping, });
             WriteAsArray(group.ToList(), jsonWriter, ImplJsonDataVisitor);
             jsonWriter.Flush();
-            outputFiles.Add(new OutputFile() { File = $"{table.OutputDataFile}_{fileIndex++}.{OutputFileExt}", Content = DataUtil.StreamToBytes(ss) });
+            outputFiles.Add(new OutputFile() { File = $"{table.OutputDataFile}_{fileNameIndex}.{OutputFileExt}", Content = DataUtil.StreamToBytes(ss) });
         }
 
         return outputFiles;
