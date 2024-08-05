@@ -27,6 +27,7 @@ public class JsonDataTarget : DataTargetBase
 
     public override OutputFile ExportTable(DefTable table, List<Record> records)
     {
+        // 这里有内存溢出的风险，当怪物表内容过大时会溢出，现在是不导出json了，反正目前也不需要
         var ss = new MemoryStream();
         var jsonWriter = new Utf8JsonWriter(ss,
             new JsonWriterOptions() { Indented = !UseCompactJson, SkipValidation = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping, });
