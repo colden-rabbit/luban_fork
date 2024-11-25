@@ -16,17 +16,17 @@ public static class SchemaLoaderUtil
     {
         var p = new RawTable()
         {
-            Name = name,
-            Namespace = module,
-            ValueType = valueType,
+            Name               = name,
+            Namespace          = module,
+            ValueType          = valueType,
             ReadSchemaFromFile = readSchemaFromFile,
-            Index = index,
-            Groups = CreateGroups(group),
-            Comment = comment,
-            Mode = ConvertMode(schemaFile, name, mode, index),
-            Tags = DefUtil.ParseAttrs(tags),
-            OutputFile = outputFileName,
-            OutputMode = ConvertOutputMode(outputMode)
+            Index              = index,
+            Groups             = CreateGroups(group),
+            Comment            = comment,
+            Mode               = ConvertMode(schemaFile, name, mode, index),
+            Tags               = DefUtil.ParseAttrs(tags),
+            OutputFile         = outputFileName,
+            OutputMode         = ConvertOutputMode(outputMode)
         };
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -51,7 +51,7 @@ public static class SchemaLoaderUtil
                 FileInfo[] files = dirInfo.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
 
                 // 过滤掉以"##"开头的文件
-                IEnumerable<FileInfo> filteredFiles = files.Where(file => !file.Name.StartsWith("##"));
+                IEnumerable<FileInfo> filteredFiles = files.Where(file => !file.Name.StartsWith("##") && !file.Name.StartsWith("~$"));
 
                 p.InputFiles.AddRange(filteredFiles.Select(file => $"{inputStr}/{file.Name}"));
             }
@@ -167,10 +167,10 @@ public static class SchemaLoaderUtil
     {
         var f = new RawField()
         {
-            Name = name,
-            Groups = CreateGroups(group),
-            Comment = comment,
-            Tags = DefUtil.ParseAttrs(tags),
+            Name              = name,
+            Groups            = CreateGroups(group),
+            Comment           = comment,
+            Tags              = DefUtil.ParseAttrs(tags),
             NotNameValidation = ignoreNameValidation,
         };
 
