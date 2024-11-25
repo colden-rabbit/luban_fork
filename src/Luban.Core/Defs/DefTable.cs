@@ -14,18 +14,19 @@ public class DefTable : DefTypeBase
 
     public DefTable(RawTable b)
     {
-        Name = b.Name;
-        Namespace = b.Namespace;
-        Index = b.Index;
-        ValueType = b.ValueType;
-        Mode = b.Mode;
-        InputFiles = b.InputFiles;
-        Groups = b.Groups;
-        Comment = b.Comment;
+        Name               = b.Name;
+        Namespace          = b.Namespace;
+        Index              = b.Index;
+        ValueType          = b.ValueType;
+        Mode               = b.Mode;
+        InputFiles         = b.InputFiles;
+        Groups             = b.Groups;
+        Comment            = b.Comment;
         ReadSchemaFromFile = b.ReadSchemaFromFile;
-        Tags = b.Tags;
-        _outputFile = b.OutputFile;
-        OutputMode = b.OutputMode;
+        Tags               = b.Tags;
+        _outputFile        = b.OutputFile;
+        OutputMode         = b.OutputMode;
+        Interfaces         = b.Interfaces;
     }
 
     public string Index { get; private set; }
@@ -49,7 +50,9 @@ public class DefTable : DefTypeBase
     private readonly string _outputFile;
 
     public TableOutputMode OutputMode { get; }
-    
+
+    public string[] Interfaces { get; }
+
     public TType KeyTType { get; private set; }
 
     public DefField IndexField { get; private set; }
@@ -84,8 +87,8 @@ public class DefTable : DefTypeBase
             case TableMode.ONE:
             {
                 IsUnionIndex = false;
-                KeyTType = null;
-                Type = ValueTType;
+                KeyTType     = null;
+                Type         = ValueTType;
                 break;
             }
             case TableMode.MAP:
@@ -95,7 +98,7 @@ public class DefTable : DefTypeBase
                 {
                     if (ValueTType.DefBean.TryGetField(Index, out var f, out var i))
                     {
-                        IndexField = f;
+                        IndexField        = f;
                         IndexFieldIdIndex = i;
                     }
                     else
@@ -109,13 +112,13 @@ public class DefTable : DefTypeBase
                 }
                 else
                 {
-                    IndexField = ValueTType.DefBean.HierarchyFields[0];
-                    Index = IndexField.Name;
+                    IndexField        = ValueTType.DefBean.HierarchyFields[0];
+                    Index             = IndexField.Name;
                     IndexFieldIdIndex = 0;
                 }
 
                 KeyTType = IndexField.CType;
-                Type = TMap.Create(false, null, KeyTType, ValueTType, false);
+                Type     = TMap.Create(false, null, KeyTType, ValueTType, false);
                 this.IndexList.Add(new IndexInfo(KeyTType, IndexField, IndexFieldIdIndex));
                 break;
             }
@@ -128,7 +131,7 @@ public class DefTable : DefTypeBase
                     {
                         if (IndexField == null)
                         {
-                            IndexField = f;
+                            IndexField        = f;
                             IndexFieldIdIndex = i;
                         }
 
@@ -142,7 +145,7 @@ public class DefTable : DefTypeBase
 
                 // 如果不是 union index, 每个key必须唯一，否则 (key1,..,key n)唯一
                 IsUnionIndex = IndexList.Count > 1 && !Index.Contains(',');
-                MultiKey = IndexList.Count > 1 && Index.Contains(',');
+                MultiKey     = IndexList.Count > 1 && Index.Contains(',');
                 break;
             }
             default:

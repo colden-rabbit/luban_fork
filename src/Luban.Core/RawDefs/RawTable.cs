@@ -27,4 +27,6 @@ public class RawTable
     public string OutputFile { get; set; }
 
     public TableOutputMode OutputMode { get; set; }
+
+    public string[] Interfaces { get; set; }
 }

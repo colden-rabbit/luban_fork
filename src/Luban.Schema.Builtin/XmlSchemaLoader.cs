@@ -136,15 +136,16 @@ public class XmlSchemaLoader : SchemaLoaderBase
         {
             valueType = TypeUtil.MakeFullName(module, valueType);
         }
-        string index = XmlUtil.GetOptionalAttribute(e, "index");
-        string group = XmlUtil.GetOptionalAttribute(e, "group");
-        string comment = XmlUtil.GetOptionalAttribute(e, "comment");
-        string input = XmlUtil.GetRequiredAttribute(e, "input");
-        string mode = XmlUtil.GetOptionalAttribute(e, "mode");
-        string tags = XmlUtil.GetOptionalAttribute(e, "tags");
-        string output = XmlUtil.GetOptionalAttribute(e, "output");
+        string index      = XmlUtil.GetOptionalAttribute(e, "index");
+        string group      = XmlUtil.GetOptionalAttribute(e, "group");
+        string comment    = XmlUtil.GetOptionalAttribute(e, "comment");
+        string input      = XmlUtil.GetRequiredAttribute(e, "input");
+        string mode       = XmlUtil.GetOptionalAttribute(e, "mode");
+        string tags       = XmlUtil.GetOptionalAttribute(e, "tags");
+        string output     = XmlUtil.GetOptionalAttribute(e, "output");
         string outputMode = XmlUtil.GetOptionalAttribute(e, "outputMode");
-        Collector.Add(SchemaLoaderUtil.CreateTable(_fileName, name, module, valueType, index, mode, group, comment, defineFromFile, input, tags, output, outputMode));
+        string interfaces = XmlUtil.GetOptionalAttribute(e, "interfaces");
+        Collector.Add(SchemaLoaderUtil.CreateTable(_fileName, name, module, valueType, index, mode, group, comment, defineFromFile, input, tags, output, outputMode, interfaces));
     }
 
     private static readonly List<string> _fieldOptionalAttrs = new()

@@ -12,7 +12,7 @@ public static class SchemaLoaderUtil
     }
 
     public static RawTable CreateTable(string schemaFile, string name, string module, string valueType, string index, string mode, string group,
-        string comment, bool readSchemaFromFile, string input, string tags, string outputFileName, string outputMode)
+        string comment, bool readSchemaFromFile, string input, string tags, string outputFileName, string outputMode, string interfaces)
     {
         var p = new RawTable()
         {
@@ -26,7 +26,8 @@ public static class SchemaLoaderUtil
             Mode               = ConvertMode(schemaFile, name, mode, index),
             Tags               = DefUtil.ParseAttrs(tags),
             OutputFile         = outputFileName,
-            OutputMode         = ConvertOutputMode(outputMode)
+            OutputMode         = ConvertOutputMode(outputMode),
+            Interfaces         = ConvertInterfaces(interfaces)
         };
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -159,6 +160,11 @@ public static class SchemaLoaderUtil
         }
 
         return outputMode;
+    }
+
+    public static string[] ConvertInterfaces(string interfacesStr)
+    {
+        return interfacesStr.Split(",", StringSplitOptions.RemoveEmptyEntries);
     }
 
     public static RawField CreateField(string schemaFile, string name, string type, string group,
