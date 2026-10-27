@@ -65,7 +65,7 @@ ET 模板保存在 `custom/et/Templates/cs-bin/`，保留 `[Config]`、`Singleto
 pwsh -NoProfile -File ./scripts/Publish-Et.ps1 -OutputDirectory ./bin/et
 ```
 
-已有依赖还原结果时可以加 `-NoRestore`。发布脚本生成完整工具及依赖，再覆盖三个 ET 模板；应先输出到独立目录验证，不能只复制 `Luban.Core.dll` 或把新旧插件混用。Unity 内的 ByteBuf 带有项目实现，不随工具包覆盖。
+已有依赖还原结果时可以加 `-NoRestore`。发布脚本生成工具及依赖，覆盖三个 ET 模板，并将发行模板裁剪为 `cs-bin/{bean,table,tables}.sbn` 和其依赖的 `common/cs/enum.sbn` 四个文件；其他语言和格式的模板不进入 ET 工具包。bin/json2 数据导出不受影响。应先输出到独立目录验证，不能只复制 `Luban.Core.dll` 或把新旧插件混用。Unity 内的 ByteBuf 带有项目实现，不随工具包覆盖。
 
 `EtCompatibilityTests` 覆盖毫秒/时区、离散长度、分片 bin/json2 和包含 `@` 目录中的 sheet 解析。升级后的工程验证还需要比较实际三套导出、编译生成代码、检查运行时完整读取，并单独复测随机崩溃；源码迁移成功不代表 AccessViolation 根因已消除。
 
