@@ -26,3 +26,9 @@ public enum TableMode
     MAP,
     LIST,
 }
+
+public enum TableOutputMode
+{
+    One,
+    More,
+}

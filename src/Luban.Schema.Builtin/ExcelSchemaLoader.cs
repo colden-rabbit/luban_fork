@@ -59,7 +59,10 @@ public class ExcelSchemaLoader : SchemaLoaderBase
     private void LoadTableListFromFile(string fileName)
     {
         (var actualFile, var sheetName) = FileUtil.SplitFileAndSheetName(FileUtil.Standardize(fileName));
-        bool hasVariantColumn = ExcelSheetHasColumn(actualFile, sheetName, "variant");
+        var columns = GetExcelSheetColumns(actualFile, sheetName);
+        bool hasVariantColumn = columns.Contains("variant");
+        bool hasOutputModeColumn = columns.Contains("output_mode");
+        bool hasInterfacesColumn = columns.Contains("interfaces");
 
         var fields = new List<RawField>
         {
@@ -77,6 +80,14 @@ public class ExcelSchemaLoader : SchemaLoaderBase
         if (hasVariantColumn)
         {
             fields.Add(new() { Name = "variant", Type = "string" });
+        }
+        if (hasOutputModeColumn)
+        {
+            fields.Add(new() { Name = "output_mode", Type = "string" });
+        }
+        if (hasInterfacesColumn)
+        {
+            fields.Add(new() { Name = "interfaces", Type = "string" });
         }
 
         var defTableRecordType = new DefBean(new RawBean()
@@ -127,21 +138,29 @@ public class ExcelSchemaLoader : SchemaLoaderBase
             string tags = (data.GetField("tags") as DString).Value.Trim();
             string outputFile = (data.GetField("output") as DString).Value.Trim();
             string variant = hasVariantColumn ? ((data.GetField("variant") as DString)?.Value?.Trim() ?? "") : "";
+            string outputMode = hasOutputModeColumn ? (data.GetField("output_mode") as DString).Value.Trim() : "";
+            string interfaces = hasInterfacesColumn ? (data.GetField("interfaces") as DString).Value.Trim() : "";
             // string options = (data.GetField("options") as DString).Value.Trim(); 
-            var table = SchemaLoaderUtil.CreateTable(fileName, name, module, valueType, index, mode, group, comment, readSchemaFromFile, inputFile, tags, outputFile, variant);
+            var table = SchemaLoaderUtil.CreateTable(fileName, name, module, valueType, index, mode, group, comment,
+                readSchemaFromFile, inputFile, tags, outputFile, variant, outputMode, interfaces);
             Collector.Add(table);
         }
         ;
     }
 
-    private static bool ExcelSheetHasColumn(string actualFile, string sheetName, string columnName)
+    private static HashSet<string> GetExcelSheetColumns(string actualFile, string sheetName, string parentColumn = null)
     {
         using var fs = new FileStream(actualFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         foreach (var sheet in SheetLoadUtil.LoadRawSheets(actualFile, sheetName, fs))
         {
-            return sheet.Title != null && sheet.Title.SubTitles.ContainsKey(columnName);
+            var title = sheet.Title;
+            if (parentColumn != null)
+            {
+                title = title?.SubTitles.GetValueOrDefault(parentColumn);
+            }
+            return title?.SubTitles.Keys.ToHashSet() ?? new HashSet<string>();
         }
-        return false;
+        return new HashSet<string>();
     }
 
     private void LoadEnumListFromFile(string fileName)
@@ -247,6 +266,26 @@ public class ExcelSchemaLoader : SchemaLoaderBase
 
     private void LoadBeanListFromFile(string fileName)
     {
+        (var actualFile, var sheetName) = FileUtil.SplitFileAndSheetName(FileUtil.Standardize(fileName));
+        var fieldColumns = GetExcelSheetColumns(actualFile, sheetName, "fields");
+        bool hasFieldAlias = fieldColumns.Contains("alias");
+        bool hasFieldVariants = fieldColumns.Contains("variants");
+        var fieldDefinitions = new List<RawField>
+        {
+            new() { Name = "name", Type = "string" },
+            new() { Name = "type", Type = "string" },
+            new() { Name = "group", Type = "string" },
+            new() { Name = "comment", Type = "string" },
+            new() { Name = "tags", Type = "string" },
+        };
+        if (hasFieldAlias)
+        {
+            fieldDefinitions.Add(new() { Name = "alias", Type = "string" });
+        }
+        if (hasFieldVariants)
+        {
+            fieldDefinitions.Add(new() { Name = "variants", Type = "string" });
+        }
         var ass = new DefAssembly(new RawAssembly()
         {
             Targets = new List<RawTarget> { new() { Name = "default", Manager = "Tables" } },
@@ -260,16 +299,7 @@ public class ExcelSchemaLoader : SchemaLoaderBase
             Alias = "",
             IsValueType = false,
             Sep = "",
-            Fields = new List<RawField>
-            {
-                new() { Name = "name", Type = "string" },
-                new() { Name = "alias", Type = "string" },
-                new() { Name = "type", Type = "string" },
-                new() { Name = "group", Type = "string" },
-                new() { Name = "comment", Type = "string" },
-                new() { Name = "tags", Type = "string" },
-                new() { Name = "variants", Type = "string" },
-            }
+            Fields = fieldDefinitions,
         })
         {
             Assembly = ass,
@@ -310,7 +340,6 @@ public class ExcelSchemaLoader : SchemaLoaderBase
         defTableRecordType.Compile();
         defTableRecordType.PostCompile();
         var tableRecordType = TBean.Create(false, defTableRecordType, null);
-        (var actualFile, var sheetName) = FileUtil.SplitFileAndSheetName(FileUtil.Standardize(fileName));
         var records = DataLoaderManager.Ins.LoadTableFile(tableRecordType, actualFile, sheetName, new Dictionary<string, string>());
 
         foreach (var r in records)
@@ -347,12 +376,12 @@ public class ExcelSchemaLoader : SchemaLoaderBase
                 Fields = fields.Datas.Select(d => (DBean)d).Select(b => SchemaLoaderUtil.CreateField(
                     fileName,
                     (b.GetField("name") as DString).Value.Trim(),
-                    (b.GetField("alias") as DString).Value.Trim(),
+                    hasFieldAlias ? (b.GetField("alias") as DString).Value.Trim() : "",
                     (b.GetField("type") as DString).Value.Trim(),
                     (b.GetField("group") as DString).Value,
                     (b.GetField("comment") as DString).Value.Trim(),
                     (b.GetField("tags") as DString).Value.Trim(),
-                    (b.GetField("variants") as DString).Value.Trim(),
+                    hasFieldVariants ? (b.GetField("variants") as DString).Value.Trim() : "",
                     false
                 )).ToList(),
             };

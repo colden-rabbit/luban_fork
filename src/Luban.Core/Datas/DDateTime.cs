@@ -63,7 +63,7 @@ public class DDateTime : DType
     public long GetUnixTime(TimeZoneInfo asTimeZone)
     {
         var destDateTime = TimeZoneInfo.ConvertTime(Time, asTimeZone, TimeZoneInfo.Utc);
-        return new DateTimeOffset(destDateTime).ToUnixTimeSeconds();
+        return new DateTimeOffset(destDateTime).ToUnixTimeMilliseconds();
     }
 
     public override void Apply<T>(IDataActionVisitor<T> visitor, T x)

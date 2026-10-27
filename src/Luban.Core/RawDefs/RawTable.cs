@@ -49,6 +49,9 @@ public class RawTable
 
     public string OutputFile { get; set; }
 
+    public TableOutputMode OutputMode { get; set; }
+    public string[] Interfaces { get; set; } = Array.Empty<string>();
+
     /// <summary>
     /// Declared table variants. Empty means this definition is the fallback table.
     /// </summary>

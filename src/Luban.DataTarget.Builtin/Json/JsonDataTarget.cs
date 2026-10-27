@@ -59,4 +59,25 @@ public class JsonDataTarget : DataTargetBase
         jsonWriter.Flush();
         return CreateOutputFile($"{table.OutputDataFile}.{OutputFileExt}", Encoding.UTF8.GetString(DataUtil.StreamToBytes(ss)));
     }
+
+    public override List<OutputFile> ExportTables(DefTable table, List<Record> records)
+    {
+        var outputFiles = new List<OutputFile>();
+        foreach (var group in records.GroupBy(r => r.Source))
+        {
+            var sourceName = Path.GetFileNameWithoutExtension(group.Key);
+            using var stream = new MemoryStream();
+            using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions()
+            {
+                Indented = !UseCompactJson,
+                SkipValidation = false,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            });
+            WriteAsArray(group.ToList(), jsonWriter, ImplJsonDataVisitor);
+            jsonWriter.Flush();
+            outputFiles.Add(CreateOutputFile($"{table.OutputDataFile}_{sourceName}.{OutputFileExt}",
+                Encoding.UTF8.GetString(DataUtil.StreamToBytes(stream))));
+        }
+        return outputFiles;
+    }
 }

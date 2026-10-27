@@ -46,6 +46,8 @@ public class DefTable : DefTypeBase
         ReadSchemaFromFile = b.ReadSchemaFromFile;
         Tags = b.Tags;
         _outputFile = b.OutputFile;
+        OutputMode = b.OutputMode;
+        Interfaces = b.Interfaces;
         CurrentVariant = b.CurrentVariant ?? "";
         Source = b.Source;
     }
@@ -74,6 +76,9 @@ public class DefTable : DefTypeBase
     public List<string> InputFiles { get; }
 
     private readonly string _outputFile;
+
+    public TableOutputMode OutputMode { get; }
+    public string[] Interfaces { get; }
 
     public TType KeyTType { get; private set; }
 

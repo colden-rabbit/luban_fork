@@ -146,7 +146,10 @@ public class XmlSchemaLoader : SchemaLoaderBase
         Collector.Add(en);
     }
 
-    private readonly List<string> _tableOptionalAttrs = new() { "index", "mode", "group", "comment", "readSchemaFromFile", "output", "tags", "variant" };
+    private readonly List<string> _tableOptionalAttrs = new()
+    {
+        "index", "mode", "group", "comment", "readSchemaFromFile", "output", "tags", "variant", "outputMode", "interfaces",
+    };
     private readonly List<string> _tableRequireAttrs = new() { "name", "value", "input" };
 
     private void AddTable(XElement e)
@@ -168,7 +171,10 @@ public class XmlSchemaLoader : SchemaLoaderBase
         string tags = XmlUtil.GetOptionalAttribute(e, "tags");
         string output = XmlUtil.GetOptionalAttribute(e, "output");
         string variant = XmlUtil.GetOptionalAttribute(e, "variant");
-        Collector.Add(SchemaLoaderUtil.CreateTable(_fileName, name, module, valueType, index, mode, group, comment, defineFromFile, input, tags, output, variant));
+        string outputMode = XmlUtil.GetOptionalAttribute(e, "outputMode");
+        string interfaces = XmlUtil.GetOptionalAttribute(e, "interfaces");
+        Collector.Add(SchemaLoaderUtil.CreateTable(_fileName, name, module, valueType, index, mode, group, comment,
+            defineFromFile, input, tags, output, variant, outputMode, interfaces));
     }
 
     private static readonly List<string> _fieldOptionalAttrs = new()

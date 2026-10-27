@@ -53,6 +53,22 @@ dotnet test src/Luban.Tests/Luban.Tests.csproj
 - 刷新 golden（改导出行为后）：`pwsh tests/scripts/update-goldens.ps1` 或 `bash tests/scripts/update-goldens.sh`
 - 也可在跑测试时设置环境变量 `LUBAN_UPDATE_GOLDEN=1` 就地更新 golden
 
+## ET 项目定制分支
+
+`codex/luban-5.1-custom` 从 `029f714f935ba58d7e33530da87e6371ee3c519f` 建立（v5.1.0 之后的 main），迁移旧 `my_work` 的项目行为。`my_work` 保留为旧版基线；不要使用本地未同步的 `upstream/main` 代替这次固定提交。
+
+定制包括 datetime 毫秒时间戳、`size=0|5` 离散容器长度、表 `interfaces`、`output_mode=more` 按来源分片、顶层 Excel 目录展开过滤，以及 `--(.*)` 自动导入默认规则。旧 Excel bean 定义没有 `fields.alias`、`fields.variants` 列时仍可读取；sheet 名在拼接目录之前解析，以同时支持 `main@battle/file.xlsx` 和路径目录中的 `@`。
+
+ET 模板保存在 `custom/et/Templates/cs-bin/`，保留 `[Config]`、`Singleton<T>`、可修改集合、接口和加载标签。源码默认模板仍用于上游测试；直接 `dotnet publish` 不会自动应用 ET 模板。项目发行包应使用：
+
+```powershell
+pwsh -NoProfile -File ./scripts/Publish-Et.ps1 -OutputDirectory ./bin/et
+```
+
+已有依赖还原结果时可以加 `-NoRestore`。发布脚本生成完整工具及依赖，再覆盖三个 ET 模板；应先输出到独立目录验证，不能只复制 `Luban.Core.dll` 或把新旧插件混用。Unity 内的 ByteBuf 带有项目实现，不随工具包覆盖。
+
+`EtCompatibilityTests` 覆盖毫秒/时区、离散长度、分片 bin/json2 和包含 `@` 目录中的 sheet 解析。升级后的工程验证还需要比较实际三套导出、编译生成代码、检查运行时完整读取，并单独复测随机崩溃；源码迁移成功不代表 AccessViolation 根因已消除。
+
 ## 支持与联系
 
 - QQ群: 692890842 （Luban开发交流群）

@@ -65,9 +65,13 @@ public class DefaultSchemaCollector : SchemaCollectorBase
         {
             tasks.Add(Task.Run(() =>
             {
-                string fileName = table.InputFiles[0];
+                var (fileName, sheetName) = FileUtil.SplitFileAndSheetName(FileUtil.Standardize(table.InputFiles[0]));
                 IBeanSchemaLoader schemaLoader = SchemaManager.Ins.CreateBeanSchemaLoader(beanSchemaLoaderName);
-                string fullPath = $"{GenerationContext.GetInputDataPath()}/{fileName}";
+                string fullPath = Path.Combine(GenerationContext.GetInputDataPath(), fileName);
+                if (!string.IsNullOrEmpty(sheetName))
+                {
+                    fullPath = $"{sheetName}@{fullPath}";
+                }
                 RawBean bean = schemaLoader.Load(fullPath, table.ValueType, table);
                 bean.Groups = new List<string>(table.Groups);
                 Add(bean);

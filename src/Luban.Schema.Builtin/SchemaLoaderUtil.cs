@@ -34,7 +34,8 @@ public static class SchemaLoaderUtil
     }
 
     public static RawTable CreateTable(string schemaFile, string name, string module, string valueType, string index, string mode, string group,
-        string comment, bool readSchemaFromFile, string input, string tags, string outputFileName, string variant = null)
+        string comment, bool readSchemaFromFile, string input, string tags, string outputFileName, string variant = null,
+        string outputMode = "", string interfaces = "")
     {
         var source = SchemaSource.FromPath(schemaFile);
         var p = new RawTable()
@@ -50,6 +51,8 @@ public static class SchemaLoaderUtil
             Mode = ConvertMode(schemaFile, name, mode, index),
             Tags = DefUtil.ParseAttrs(tags),
             OutputFile = outputFileName,
+            OutputMode = ConvertOutputMode(outputMode),
+            Interfaces = interfaces.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             Variants = DefUtil.ParseVariant(variant ?? ""),
         };
         if (string.IsNullOrWhiteSpace(name))
@@ -60,7 +63,27 @@ public static class SchemaLoaderUtil
         {
             throw new LubanException(source, "error.schema.table_empty_value_type", source?.Display ?? schemaFile, p.Name, valueType);
         }
-        p.InputFiles.AddRange(input.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)));
+        foreach (var inputFile in input.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrWhiteSpace(s)))
+        {
+            var fullPath = Path.Combine(GenerationContext.GetInputDataPath(), inputFile);
+            if (Directory.Exists(fullPath))
+            {
+                var files = new DirectoryInfo(fullPath).GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
+                if (files.Length > 0)
+                {
+                    p.InputFiles.AddRange(files.Where(file => !file.Name.StartsWith("##") && !file.Name.StartsWith("~$"))
+                        .Select(file => $"{inputFile}/{file.Name}"));
+                }
+                else
+                {
+                    p.InputFiles.Add(inputFile);
+                }
+            }
+            else
+            {
+                p.InputFiles.Add(inputFile);
+            }
+        }
 
         // if (!string.IsNullOrWhiteSpace(patchInput))
         // {
@@ -80,6 +103,16 @@ public static class SchemaLoaderUtil
         // }
 
         return p;
+    }
+
+    public static TableOutputMode ConvertOutputMode(string outputMode)
+    {
+        return outputMode switch
+        {
+            "" or "one" => TableOutputMode.One,
+            "more" => TableOutputMode.More,
+            _ => throw new ArgumentException($"Unsupported output mode: {outputMode}"),
+        };
     }
 
     public static TableMode ConvertMode(string schemaFile, string tableName, string modeStr, string indexStr)

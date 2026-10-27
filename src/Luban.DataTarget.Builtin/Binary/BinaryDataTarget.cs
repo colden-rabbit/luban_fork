@@ -44,4 +44,17 @@ public class BinaryDataTarget : DataTargetBase
         WriteList(table, records, bytes);
         return CreateOutputFile($"{table.OutputDataFile}.{OutputFileExt}", bytes.CopyData());
     }
+
+    public override List<OutputFile> ExportTables(DefTable table, List<Record> records)
+    {
+        var outputFiles = new List<OutputFile>();
+        foreach (var group in records.GroupBy(r => r.Source))
+        {
+            var sourceName = Path.GetFileNameWithoutExtension(group.Key);
+            var bytes = new ByteBuf();
+            WriteList(table, group.ToList(), bytes);
+            outputFiles.Add(CreateOutputFile($"{table.OutputDataFile}_{sourceName}.{OutputFileExt}", bytes.CopyData()));
+        }
+        return outputFiles;
+    }
 }
